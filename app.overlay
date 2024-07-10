@@ -10,6 +10,12 @@
                 gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
                 status = "okay";
 	};
+
+	lcd_bk_en_pin: lcd-bk-en-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
 };
 
 &gpio1 {
