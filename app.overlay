@@ -23,9 +23,27 @@
                 status = "okay";
 	};
 
+	button_1_pin: button-1-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
+
 	button_2_pin: button-2-pin {
                 compatible = "nordic,gpio-pins";
                 gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
+
+	button_3_pin: button-3-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
+
+	button_4_pin: button-4-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
                 status = "okay";
 	};
 };
