@@ -16,6 +16,12 @@
                 gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
                 status = "okay";
 	};
+
+	lcd_vcom_pin: lcd-vcom-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
 };
 
 &gpio1 {
