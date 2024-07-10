@@ -4,3 +4,18 @@
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
+/ {
+	lra_en_pin: lra-en-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
+};
+
+&gpio1 {
+        status = "okay";
+};
+
+&gpiote1 {
+        status = "okay";
+};
