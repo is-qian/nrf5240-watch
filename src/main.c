@@ -6,6 +6,7 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/drivers/pwm.h>
+#include <zephyr/drivers/adc.h>
 
 //micros
 #define SPI_FLASH_TEST_REGION_OFFSET 0xff000
@@ -41,6 +42,31 @@ static const struct gpio_dt_spec button_4 =
 const struct pwm_dt_spec pwm_led0 =        PWM_DT_SPEC_GET(DT_ALIAS(pwm_led0));
 #define MIN_PERIOD (PWM_SEC(1U) / 128U)
 #define MAX_PERIOD (PWM_SEC(1U))
+
+//adc
+const struct device *adc_dev;
+
+#include <hal/nrf_saadc.h>
+#define ADC_DEVICE_NAME DT_ADC_0_NAME
+#define ADC_RESOLUTION 10
+#define ADC_GAIN ADC_GAIN_1_6
+#define ADC_REFERENCE ADC_REF_INTERNAL
+#define ADC_ACQUISITION_TIME ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)
+#define ADC_1ST_CHANNEL_ID 0
+#define ADC_1ST_CHANNEL_INPUT NRF_SAADC_INPUT_AIN0
+
+static const struct adc_channel_cfg m_1st_channel_cfg = {
+	.gain = ADC_GAIN,
+	.reference = ADC_REFERENCE,
+	.acquisition_time = ADC_ACQUISITION_TIME,
+	.channel_id = ADC_1ST_CHANNEL_ID,
+#if defined(CONFIG_ADC_CONFIGURABLE_INPUTS)
+	.input_positive = ADC_1ST_CHANNEL_INPUT,
+#endif
+};
+
+#define BUFFER_SIZE 1 
+static int16_t m_sample_buffer[BUFFER_SIZE];
 
 void test_output(void)
 {
@@ -241,6 +267,59 @@ void test_pwm(void)
 	printk("pwm:%d %d\n", pwm_set_dt(&pwm_led0, period, period / 2U), period);
 }
 
+void init_adc(void)
+{
+	int err;
+	printk("nRF53 SAADC sampling AIN0 (P0.04)\n");
+
+	adc_dev = DEVICE_DT_GET(DT_NODELABEL(adc));
+	if (!adc_dev) {
+		printk("device_get_binding ADC_0 failed\n");
+	}
+	err = adc_channel_setup(adc_dev, &m_1st_channel_cfg);
+	if (err) {
+		printk("Error in adc setup: %d\n", err);
+	}
+
+	/* Trigger offset calibration
+	 * As this generates a _DONE and _RESULT event
+	 * the first result will be incorrect.
+	 */
+#if (CONFIG_BUILD_WITH_TFM)
+	NRF_SAADC_NS->TASKS_CALIBRATEOFFSET = 1;
+#else
+	NRF_SAADC_S->TASKS_CALIBRATEOFFSET = 1; 
+#endif
+}
+
+static int test_adc(void)
+{
+	int ret;
+
+	const struct adc_sequence sequence = {
+		.channels = BIT(ADC_1ST_CHANNEL_ID),
+		.buffer = m_sample_buffer,
+		.buffer_size = sizeof(m_sample_buffer),
+		.resolution = ADC_RESOLUTION,
+	};
+
+	if (!adc_dev) {
+		return -1;
+	}
+
+	ret = adc_read(adc_dev, &sequence);
+	if(ret)
+		printk("ADC read err: %d\n", ret);
+
+	printf("P0.04 adc: ");
+	for (int i = 0; i < BUFFER_SIZE; i++) {
+		printk("%d ", m_sample_buffer[i]);
+	}
+	printk("\n");
+
+	return ret;
+}
+
 int main(void)
 {
 	int cnt = 0;
@@ -257,6 +336,7 @@ int main(void)
 	test_qspi_flash(flash_dev);
 	test_uart();
 	test_pwm();
+	init_adc();
 
 	while(1) {
 		printk("hello cnt:%d\n", cnt++);
@@ -268,6 +348,7 @@ int main(void)
 	        	print_uart(tx_buf);
 	        	print_uart("\r\n");
 		}
+		test_adc();
 	}
 	return 0;
 }

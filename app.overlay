@@ -77,6 +77,10 @@
         pwms = <&sw_pwm 0 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
 };
 
+&adc {
+	status = "okay";
+};
+
 &pinctrl {
         uart0_default: uart0_default {
                 group1 {
