@@ -478,7 +478,7 @@ int main(void)
 	init_sensor_i2c();
 
 	while(1) {
-		printk("hello cnt:%d\n", cnt++);
+		printk("----------------------------testcnt:%d-----------------------------------\n", cnt++);
 		k_msleep(1000);
 		test_output();
 		test_input();
