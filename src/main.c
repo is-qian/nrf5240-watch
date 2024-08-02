@@ -8,6 +8,7 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/i2c.h>
 
 //micros
 #define SPI_FLASH_TEST_REGION_OFFSET 0xff000
@@ -84,6 +85,10 @@ struct spi_cs_control sensor_cs0_ctrl = (struct spi_cs_control){
         .gpio = GPIO_DT_SPEC_GET(SPIBB_SENSOR, cs_gpios),
         .delay = 0u,
 };
+
+//sensor i2c
+#define I2C2_DEV_NAME DT_NODELABEL(i2c2)
+const struct device *const i2c2_dev = DEVICE_DT_GET(I2C2_DEV_NAME);
 
 void test_output(void)
 {
@@ -425,6 +430,32 @@ static int init_sensor_spi(void)
 	return 0;
 }
 
+static int init_sensor_i2c(void)
+{
+        if (!device_is_ready(i2c2_dev)) {
+                printk("%s: device not ready.\n", i2c2_dev->name);
+                return 0;
+        }
+
+	return 0;
+}
+
+static int test_sensor_i2c(void)
+{
+	uint8_t i2c_addr;
+	uint8_t data = 0;
+	int ret;
+
+	for (i2c_addr = 0x03; i2c_addr < 0x78; i2c_addr++) {
+		ret = i2c_read(i2c2_dev, &data, 1, i2c_addr);
+		if (ret == 0) {
+			printk("I2C device found at address 0x%02x\n", i2c_addr);
+		}
+	}
+
+	return 0;
+}
+
 int main(void)
 {
 	int cnt = 0;
@@ -444,6 +475,7 @@ int main(void)
 	init_adc();
 	init_lcd_spi();
 	init_sensor_spi();
+	init_sensor_i2c();
 
 	while(1) {
 		printk("hello cnt:%d\n", cnt++);
@@ -458,6 +490,7 @@ int main(void)
 		test_adc();
 		test_9bit_loopback_partial(spi_dev, &cs_ctrl);
 		test_basic_write_9bit_words(sensor_spi_dev, &sensor_cs0_ctrl);
+		test_sensor_i2c();
 	}
 	return 0;
 }
