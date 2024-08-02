@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
+#include <dt-bindings/regulator/npm1300.h>
+
 / {
 	lra_en_pin: lra-en-pin {
                 compatible = "nordic,gpio-pins";
@@ -108,6 +110,21 @@
         pinctrl-0 = <&i2c2_default>;
         pinctrl-1 = <&i2c2_sleep>;
         pinctrl-names = "default", "sleep";
+};
+
+&i2c1_default {
+        group1 {
+                bias-pull-up;
+        };
+};
+
+&npm1300_ek_ldo1 {
+        regulator-initial-mode = <NPM1300_LDSW_MODE_LDSW>;
+};
+
+&npm1300_ek_pmic {
+        host-int-gpios = <&gpio1 1 0>;
+        pmic-int-pin = <1>;
 };
 
 &pinctrl {
