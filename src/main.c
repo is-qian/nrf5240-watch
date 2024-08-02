@@ -77,6 +77,13 @@ struct spi_cs_control cs_ctrl = (struct spi_cs_control){
         .delay = 0u,
 };
 
+//sensor spi
+#define SPIBB_SENSOR      DT_NODELABEL(spibb1)
+const struct device *const sensor_spi_dev = DEVICE_DT_GET(SPIBB_SENSOR);
+struct spi_cs_control sensor_cs0_ctrl = (struct spi_cs_control){
+        .gpio = GPIO_DT_SPEC_GET(SPIBB_SENSOR, cs_gpios),
+        .delay = 0u,
+};
 
 void test_output(void)
 {
@@ -396,11 +403,22 @@ void test_9bit_loopback_partial(const struct device *dev,
         printf(" rx (ii) : %04x %04x %04x\n", rxdata[0], rxdata[1], rxdata[2]);
 }
 
-static int init_spi(void)
+static int init_lcd_spi(void)
 {
 
         if (!device_is_ready(spi_dev)) {
                 printk("%s: device not ready.\n", spi_dev->name);
+                return 0;
+        }
+
+	return 0;
+}
+
+static int init_sensor_spi(void)
+{
+
+        if (!device_is_ready(sensor_spi_dev)) {
+                printk("%s: device not ready.\n", sensor_spi_dev->name);
                 return 0;
         }
 
@@ -424,7 +442,8 @@ int main(void)
 	test_uart();
 	test_pwm();
 	init_adc();
-	init_spi();
+	init_lcd_spi();
+	init_sensor_spi();
 
 	while(1) {
 		printk("hello cnt:%d\n", cnt++);
@@ -438,6 +457,7 @@ int main(void)
 		}
 		test_adc();
 		test_9bit_loopback_partial(spi_dev, &cs_ctrl);
+		test_basic_write_9bit_words(sensor_spi_dev, &sensor_cs0_ctrl);
 	}
 	return 0;
 }
