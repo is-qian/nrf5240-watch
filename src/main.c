@@ -7,6 +7,7 @@
 #include <zephyr/drivers/uart.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/drivers/adc.h>
+#include <zephyr/drivers/spi.h>
 
 //micros
 #define SPI_FLASH_TEST_REGION_OFFSET 0xff000
@@ -67,6 +68,15 @@ static const struct adc_channel_cfg m_1st_channel_cfg = {
 
 #define BUFFER_SIZE 1 
 static int16_t m_sample_buffer[BUFFER_SIZE];
+
+//lcd spi
+#define SPIBB_NODE      DT_NODELABEL(spibb0)
+const struct device *const spi_dev = DEVICE_DT_GET(SPIBB_NODE);
+struct spi_cs_control cs_ctrl = (struct spi_cs_control){
+        .gpio = GPIO_DT_SPEC_GET(SPIBB_NODE, cs_gpios),
+        .delay = 0u,
+};
+
 
 void test_output(void)
 {
@@ -320,6 +330,83 @@ static int test_adc(void)
 	return ret;
 }
 
+/*
+ * writes 5 9bit words, you can check the output with a logic analyzer
+ */
+void test_basic_write_9bit_words(const struct device *dev,
+                                 struct spi_cs_control *cs)
+{
+        struct spi_config config;
+
+        config.frequency = 125000;
+        config.operation = SPI_OP_MODE_MASTER | SPI_WORD_SET(9);
+        config.slave = 0;
+        config.cs = *cs;
+
+        uint16_t buff[5] = { 0x0101, 0x00ff, 0x00a5, 0x0000, 0x0102};
+        int len = 5 * sizeof(buff[0]);
+
+        struct spi_buf tx_buf = { .buf = buff, .len = len };
+        struct spi_buf_set tx_bufs = { .buffers = &tx_buf, .count = 1 };
+
+        int ret = spi_write(dev, &config, &tx_bufs);
+
+        printf("basic_write_9bit_words; ret: %d\n", ret);
+        printf(" wrote %04x %04x %04x %04x %04x\n",
+                buff[0], buff[1], buff[2], buff[3], buff[4]);
+}
+
+/*
+ * A more complicated xfer, sends two words, then sends and receives another
+ * 3 words. Connect MOSI to MISO to test read
+ */
+void test_9bit_loopback_partial(const struct device *dev,
+                                struct spi_cs_control *cs)
+{
+        struct spi_config config;
+
+        config.frequency = 125000;
+        config.operation = SPI_OP_MODE_MASTER | SPI_WORD_SET(9);
+        config.slave = 0;
+        config.cs = *cs;
+
+        enum { datacount = 5 };
+        uint16_t buff[datacount] = { 0x0101, 0x0102, 0x0003, 0x0004, 0x0105};
+        uint16_t rxdata[3];
+
+        const int stride = sizeof(buff[0]);
+
+        struct spi_buf tx_buf[2] = {
+                {.buf = buff, .len = (2) * stride},
+                {.buf = buff + (2), .len = (datacount - 2)*stride},
+        };
+        struct spi_buf rx_buf[2] = {
+                {.buf = 0, .len = (2) * stride},
+                {.buf = rxdata, .len = (datacount - 2) * stride},
+        };
+
+        struct spi_buf_set tx_set = { .buffers = tx_buf, .count = 2 };
+        struct spi_buf_set rx_set = { .buffers = rx_buf, .count = 2 };
+
+        int ret = spi_transceive(dev, &config, &tx_set, &rx_set);
+
+        printf("9bit_loopback_partial; ret: %d\n", ret);
+        printf(" tx (i)  : %04x %04x\n", buff[0], buff[1]);
+        printf(" tx (ii) : %04x %04x %04x\n", buff[2], buff[3], buff[4]);
+        printf(" rx (ii) : %04x %04x %04x\n", rxdata[0], rxdata[1], rxdata[2]);
+}
+
+static int init_spi(void)
+{
+
+        if (!device_is_ready(spi_dev)) {
+                printk("%s: device not ready.\n", spi_dev->name);
+                return 0;
+        }
+
+	return 0;
+}
+
 int main(void)
 {
 	int cnt = 0;
@@ -337,6 +424,7 @@ int main(void)
 	test_uart();
 	test_pwm();
 	init_adc();
+	init_spi();
 
 	while(1) {
 		printk("hello cnt:%d\n", cnt++);
@@ -349,6 +437,7 @@ int main(void)
 	        	print_uart("\r\n");
 		}
 		test_adc();
+		test_9bit_loopback_partial(spi_dev, &cs_ctrl);
 	}
 	return 0;
 }
