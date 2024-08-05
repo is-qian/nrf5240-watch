@@ -173,13 +173,13 @@ void test_input(void)
 	int button1, button2, button3, button4;
 
 	if(button_1.port)
-		gpio_pin_configure_dt(&button_1, GPIO_INPUT);
+		gpio_pin_configure_dt(&button_1, GPIO_INPUT | GPIO_PULL_UP);
 	if(button_2.port)
-		gpio_pin_configure_dt(&button_2, GPIO_INPUT);
+		gpio_pin_configure_dt(&button_2, GPIO_INPUT | GPIO_PULL_UP);
 	if(button_3.port)
-		gpio_pin_configure_dt(&button_3, GPIO_INPUT);
+		gpio_pin_configure_dt(&button_3, GPIO_INPUT | GPIO_PULL_UP);
 	if(button_4.port)
-		gpio_pin_configure_dt(&button_4, GPIO_INPUT);
+		gpio_pin_configure_dt(&button_4, GPIO_INPUT | GPIO_PULL_UP);
 
 	button1 = gpio_pin_get(button_1.port, button_1.pin);
 	button2 = gpio_pin_get(button_2.port, button_2.pin);
