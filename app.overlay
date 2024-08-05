@@ -43,6 +43,12 @@
                 status = "okay";
 	};
 
+	press_int_pin: press-int-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio0 26 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
+
 	button_1_pin: button-1-pin {
                 compatible = "nordic,gpio-pins";
                 gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
