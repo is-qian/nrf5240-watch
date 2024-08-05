@@ -92,7 +92,7 @@
                 clk-gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
                 mosi-gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
                 miso-gpios = <&gpio0 31 0>;
-                cs-gpios = <&gpio0 27 GPIO_ACTIVE_LOW>;
+                cs-gpios = <&gpio0 28 GPIO_ACTIVE_LOW>;
         };
 };
 
