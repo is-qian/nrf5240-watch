@@ -44,6 +44,8 @@ static const struct gpio_dt_spec lsm6d_int2 =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(lsm6d_int2_pin), gpios, {0});
 static const struct gpio_dt_spec press_int =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(press_int_pin), gpios, {0});
+static const struct gpio_dt_spec press_cs =
+   GPIO_DT_SPEC_GET_OR(DT_NODELABEL(press_cs_pin), gpios, {0});
 
 //gpio input
 static const struct gpio_dt_spec button_1 =
@@ -163,6 +165,7 @@ void test_output(void)
 	test_output_pin(&lsm6d_int1);
 	test_output_pin(&lsm6d_int2);
 	test_output_pin(&press_int);
+	test_output_pin(&press_cs);
 }
 
 void test_input(void)
