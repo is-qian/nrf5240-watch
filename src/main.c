@@ -29,6 +29,7 @@ static char rx_buf[MSG_SIZE];
 static int rx_buf_pos;
 
 //gpio output
+static int output_cnt = 0;
 static const struct gpio_dt_spec lra_en =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(lra_en_pin), gpios, {0});
 static const struct gpio_dt_spec lcd_bk_en =
@@ -138,35 +139,27 @@ static int16_t i2s_test_data[BLOCK_SIZE] = {
           0x1122,   0x3344,   0x5566,  0x7788,
 };
 
+static int test_output_pin(const struct gpio_dt_spec *test_pin)
+{
+	int ret = 0;
+	if(test_pin->port)
+		gpio_pin_configure_dt(test_pin, GPIO_OUTPUT);
+
+	if(test_pin->port) 
+		output_cnt % 2 ? gpio_pin_set_dt(test_pin, 1) : gpio_pin_set_dt(test_pin, 0);
+
+	return ret;
+}
+
 void test_output(void)
 {
-	static int output_cnt = 0;
-	if(lra_en.port)
-		gpio_pin_configure_dt(&lra_en, GPIO_OUTPUT);
-	if(lcd_bk_en.port)
-		gpio_pin_configure_dt(&lcd_bk_en, GPIO_OUTPUT);
-	if(lcd_vcom.port)
-		gpio_pin_configure_dt(&lcd_vcom, GPIO_OUTPUT);
-	if(i2s_mclk.port)
-		gpio_pin_configure_dt(&i2s_mclk, GPIO_OUTPUT);
-	if(lsm6d_int1.port)
-		gpio_pin_configure_dt(&lsm6d_int1, GPIO_OUTPUT);
-	if(lsm6d_int2.port)
-		gpio_pin_configure_dt(&lsm6d_int2, GPIO_OUTPUT);
-
 	output_cnt++;
-	if(lra_en.port) 
-		output_cnt % 2 ? gpio_pin_set_dt(&lra_en, 1) : gpio_pin_set_dt(&lra_en, 0);
-	if(lcd_bk_en.port) 
-		output_cnt % 2 ? gpio_pin_set_dt(&lcd_bk_en, 1) : gpio_pin_set_dt(&lcd_bk_en, 0);
-	if(lcd_vcom.port) 
-		output_cnt % 2 ? gpio_pin_set_dt(&lcd_vcom, 1) : gpio_pin_set_dt(&lcd_vcom, 0);
-	if(i2s_mclk.port) 
-		output_cnt % 2 ? gpio_pin_set_dt(&i2s_mclk, 1) : gpio_pin_set_dt(&i2s_mclk, 0);
-	if(lsm6d_int1.port) 
-		output_cnt % 2 ? gpio_pin_set_dt(&lsm6d_int1, 1) : gpio_pin_set_dt(&lsm6d_int1, 0);
-	if(lsm6d_int2.port) 
-		output_cnt % 2 ? gpio_pin_set_dt(&lsm6d_int2, 1) : gpio_pin_set_dt(&lsm6d_int2, 0);
+	test_output_pin(&lra_en);
+	test_output_pin(&lcd_bk_en);
+	test_output_pin(&lcd_vcom);
+	test_output_pin(&i2s_mclk);
+	test_output_pin(&lsm6d_int1);
+	test_output_pin(&lsm6d_int2);
 }
 
 void test_input(void)
