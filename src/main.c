@@ -689,7 +689,6 @@ int main(void)
         }
 
 
-	test_qspi_flash(flash_dev);
 	test_uart();
 	test_pwm();
 	init_adc();
@@ -704,6 +703,7 @@ int main(void)
 		k_msleep(1000);
 		test_output();
 		test_input();
+		test_qspi_flash(flash_dev);
 		if(k_msgq_get(&uart_msgq, &tx_buf, K_NO_WAIT) == 0) {
 	        	print_uart("Echo: ");
 	        	print_uart(tx_buf);
