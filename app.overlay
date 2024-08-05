@@ -127,6 +127,12 @@
         pmic-int-pin = <1>;
 };
 
+i2s_rxtx: &i2s0 {
+        status = "okay";
+        pinctrl-0 = <&i2s0_default_alt>;
+        pinctrl-names = "default";
+};
+
 &pinctrl {
         uart0_default: uart0_default {
                 group1 {
@@ -162,6 +168,15 @@
                         psels = <NRF_PSEL(TWIM_SDA, 1, 5)>,
                                 <NRF_PSEL(TWIM_SCL, 1, 6)>;
                         low-power-enable;
+                };
+        };
+
+        i2s0_default_alt: i2s0_default_alt {
+                group1 {
+                        psels = <NRF_PSEL(I2S_SCK_M, 1, 12)>,
+                                <NRF_PSEL(I2S_LRCK_M, 1, 11)>,
+                                <NRF_PSEL(I2S_SDOUT, 1, 14)>,
+                                <NRF_PSEL(I2S_SDIN, 1, 13)>;
                 };
         };
 };
