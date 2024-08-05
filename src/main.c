@@ -35,6 +35,8 @@ static const struct gpio_dt_spec lcd_bk_en =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(lcd_bk_en_pin), gpios, {0});
 static const struct gpio_dt_spec lcd_vcom =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(lcd_vcom_pin), gpios, {0});
+static const struct gpio_dt_spec i2s_mclk =
+   GPIO_DT_SPEC_GET_OR(DT_NODELABEL(i2s_mclk_pin), gpios, {0});
 
 //gpio input
 static const struct gpio_dt_spec button_1 =
@@ -141,6 +143,8 @@ void test_output(void)
 		gpio_pin_configure_dt(&lcd_bk_en, GPIO_OUTPUT);
 	if(lcd_vcom.port)
 		gpio_pin_configure_dt(&lcd_vcom, GPIO_OUTPUT);
+	if(i2s_mclk.port)
+		gpio_pin_configure_dt(&i2s_mclk, GPIO_OUTPUT);
 
 	output_cnt++;
 	if(lra_en.port) 
@@ -149,6 +153,8 @@ void test_output(void)
 		output_cnt % 2 ? gpio_pin_set_dt(&lcd_bk_en, 1) : gpio_pin_set_dt(&lcd_bk_en, 0);
 	if(lcd_vcom.port) 
 		output_cnt % 2 ? gpio_pin_set_dt(&lcd_vcom, 1) : gpio_pin_set_dt(&lcd_vcom, 0);
+	if(i2s_mclk.port) 
+		output_cnt % 2 ? gpio_pin_set_dt(&i2s_mclk, 1) : gpio_pin_set_dt(&i2s_mclk, 0);
 }
 
 void test_input(void)

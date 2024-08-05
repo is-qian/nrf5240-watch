@@ -25,6 +25,12 @@
                 status = "okay";
 	};
 
+	i2s_mclk_pin: i2s-mclk-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
+
 	button_1_pin: button-1-pin {
                 compatible = "nordic,gpio-pins";
                 gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
