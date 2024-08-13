@@ -151,6 +151,10 @@
         regulator-initial-mode = <NPM1300_LDSW_MODE_LDSW>;
 };
 
+&npm1300_ek_buck2 {
+	regulator-init-microvolt = < 3000000 >;
+};
+
 &npm1300_ek_pmic {
         host-int-gpios = <&gpio1 1 0>;
         pmic-int-pin = <1>;
