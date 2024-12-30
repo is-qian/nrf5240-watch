@@ -22,3 +22,8 @@
 
 ### How to build this code
 Details in [here](https://docs.nordicsemi.com/bundle/ncs-1.4.0/page/nrf/gs_installing.html)
+
+### How to download image
+```
+./tools/download.sh
+```

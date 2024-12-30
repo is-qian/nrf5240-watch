@@ -1,0 +1,4 @@
+r
+loadfile ./build/zephyr/zephyr.hex 0x00000000
+r
+q
