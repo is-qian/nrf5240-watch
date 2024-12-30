@@ -16,6 +16,8 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/drivers/i2s.h>
 
+#include <zephyr/shell/shell.h>
+
 //micros
 #define SPI_FLASH_TEST_REGION_OFFSET 0xff000
 #define SPI_FLASH_SECTOR_SIZE        4096
@@ -678,42 +680,18 @@ static int test_codec(void)
 
 int main(void)
 {
-	int cnt = 0;
+	const struct device *dev;
+	uint32_t dtr = 0;
 
-        const struct device *flash_dev = DEVICE_DT_GET(DT_ALIAS(spi_flash0));
-
-        char tx_buf[MSG_SIZE];
-
-        if (!device_is_ready(flash_dev)) {
-                printk("%s: device not ready.\n", flash_dev->name);
+	dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_shell_uart));
+        if (!device_is_ready(dev)) {
+		printk("UART device not found!");
+                return 0;
         }
 
-
-	test_uart();
-	test_pwm();
-	init_adc();
-	init_lcd_spi();
-	init_sensor_spi();
-	init_sensor_i2c();
-	init_pmic();
-	init_codec();
-
 	while(1) {
-		printk("----------------------------testcnt:%d-----------------------------------\n", cnt++);
-		k_msleep(1000);
-		test_output();
-		test_input();
-		test_qspi_flash(flash_dev);
-		if(k_msgq_get(&uart_msgq, &tx_buf, K_NO_WAIT) == 0) {
-	        	print_uart("Echo: ");
-	        	print_uart(tx_buf);
-	        	print_uart("\r\n");
-		}
-		test_adc();
-		test_9bit_loopback_partial(spi_dev, &cs_ctrl);
-		test_basic_write_9bit_words(sensor_spi_dev, &sensor_cs0_ctrl);
-		test_sensor_i2c();
-		test_codec();
+		uart_line_ctrl_get(dev, UART_LINE_CTRL_DTR, &dtr);
+		k_sleep(K_MSEC(100));
 	}
 	return 0;
 }
