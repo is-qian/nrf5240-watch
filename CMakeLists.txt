@@ -5,4 +5,4 @@ set(SHIELD npm1300_ek)
 find_package(Zephyr)
 project(nrf5340-peripherals)
 
-target_sources(app PRIVATE src/main.c)
+target_sources(app PRIVATE src/main.c src/test_pmic.c)
