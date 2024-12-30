@@ -20,3 +20,5 @@
 |pmic(nPM1300)|P1.03:IIC1_SCL<BR>P1.02:IIC1_SDA|button value showed in uart log:`Short press`|
 |qspi|P0.18:cs<br>P0.17:CLK<BR>P0.13:DATA0<BR>P0.14:DATA1<BR>P0.15:DATA2<BR>P0.16:DATA3|measuring waveform on R36/R37/R38/R39/R40/R41|
 
+### How to build this code
+Details in [here](https://docs.nordicsemi.com/bundle/ncs-1.4.0/page/nrf/gs_installing.html)
