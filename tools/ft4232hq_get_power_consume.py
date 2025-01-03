@@ -23,7 +23,7 @@ sys.stdout = sys.__stdout__
 
 devlist = output.getvalue()
 
-match = re.search(r'ftdi://ftdi:4232:1:\d+/1', devlist) 
+match = re.search(r'ftdi://ftdi:4232:1:[a-f0-9]+/1', devlist) 
 
 if match:
     dev_str = match.group(0)
