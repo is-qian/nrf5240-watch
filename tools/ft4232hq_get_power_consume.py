@@ -12,8 +12,8 @@ slave = i2c.get_port(0x40)
 # reset the chip
 slave.exchange([0x00, 0xc1, 0x27], 1)
 
-# config the cali register for current reg: 3uA/bit, for power reg: 75uW/bit
-slave.exchange([0x05, 0x0d, 0x55], 1)
+# config the cali register for current reg: 3.2uA/bit, for power reg: 80uW/bit
+slave.exchange([0x05, 0x0c, 0x80], 1)
 
 # Read a register from the I2C slave
 x = slave.read_from(0x01, 2)
@@ -24,9 +24,9 @@ x = slave.read_from(0x02, 2)
 print("bus voltage:",int.from_bytes(x, byteorder='big')*1.25,"mV")
 x = slave.read_from(0x03, 2)
 #print("reg power(0x03):"+x.hex())
-print("power:", int.from_bytes(x, byteorder='big')*75/1000, "mW")
+print("power:", int.from_bytes(x, byteorder='big')*80/1000, "mW")
 x = slave.read_from(0x04, 2)
 #print("reg curr(0x04):"+x.hex())
-print("current:", int.from_bytes(x, byteorder='big')*3/1000, "mA")
+print("current:", int.from_bytes(x, byteorder='big')*3.2/1000, "mA")
 x = slave.read_from(0x05, 2)
 print("reg cali(0x05):"+x.hex())
