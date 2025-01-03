@@ -43,7 +43,7 @@ slave = i2c.get_port(slave_id)
 # reset the chip
 slave.exchange([0x00, 0xc1, 0x27], 1)
 
-# config the cali register for current reg: 3.2uA/bit, for power reg: 80uW/bit
+# config the cali register for current reg: 3.2uA/bit,max current:32768uA, for power reg: 80uW/bit
 slave.exchange([0x05, 0x0c, 0x80], 1)
 
 # Read a register from the I2C slave
