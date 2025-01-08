@@ -31,8 +31,6 @@ static int rx_buf_pos;
 
 //gpio output
 static int output_cnt = 0;
-static const struct gpio_dt_spec lra_en =
-   GPIO_DT_SPEC_GET_OR(DT_NODELABEL(lra_en_pin), gpios, {0});
 static const struct gpio_dt_spec lcd_bk_en =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(lcd_bk_en_pin), gpios, {0});
 static const struct gpio_dt_spec lcd_vcom =
@@ -123,7 +121,6 @@ static int test_output_pin(const struct gpio_dt_spec *test_pin)
 void test_output(void)
 {
 	output_cnt++;
-	test_output_pin(&lra_en);
 	test_output_pin(&lcd_bk_en);
 	test_output_pin(&lcd_vcom);
 	test_output_pin(&i2s_mclk);
