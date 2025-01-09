@@ -4,10 +4,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/i2s.h>
 #include <nrfx.h>
-#include <nrfx_dppi.h>
-#include <helpers/nrfx_gppi.h>
-#include <nrfx_gpiote.h>
-#include <nrfx_timer.h>
 
 //codec
 #define I2S_RX_NODE  DT_NODELABEL(i2s_rxtx)
