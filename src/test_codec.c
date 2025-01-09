@@ -74,52 +74,6 @@ static int test_codec(void)
 	return 0;
 }
 
-#define GPIOTE_INTERRUPT_PRIORITY 0
-#define GPIOTE_MCLK_SYNC_PIN_OUT 0
-#define DIVIDER_COUNT 20
-#define ERROR_STATUS_CHECK(error) if(error != NRFX_SUCCESS){ printk("error code not 0! IS = %d", error);}
-
-
-#define PIN 58 
-
-nrfx_timer_t m_timer = NRFX_TIMER_INSTANCE(0);
-static int init_mclk(void)
-{
-	nrfx_gpiote_init(GPIOTE_INTERRUPT_PRIORITY, 0);
-
-	nrfx_err_t err;
-	nrfx_gpiote_output_config_t out_config;
-	err = nrfx_gpiote_out_init(PIN, &out_config);
-	if( err != NRFX_SUCCESS )
-	{
-		printk("err_code not 0 for nrf_drv_gpiote_in_init");
-	}
-
-	nrfx_timer_config_t timer_cfg = NRFX_TIMER_DEFAULT_CONFIG(8000000);
-	timer_cfg.mode = NRF_TIMER_MODE_TIMER;
-	timer_cfg.bit_width = NRF_TIMER_BIT_WIDTH_32;
-	err = nrfx_timer_init(&m_timer, &timer_cfg, NULL);
-	ERROR_STATUS_CHECK(err)
-
-        nrfx_timer_extended_compare(&m_timer, NRF_TIMER_CC_CHANNEL0, DIVIDER_COUNT, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, false);    
-
-        uint8_t channel;
-	const nrfx_gpiote_t *gpiote = 1;
-        err =  nrfx_dppi_channel_alloc(&channel);
-        nrfx_gpiote_pin_t gpiote_mclk_sync_pin_out = PIN;
-
- 	uint32_t gpiote_mclk_toggle_task_addr = nrfx_gpiote_out_task_address_get(gpiote, gpiote_mclk_sync_pin_out); 
-	uint32_t timer_event_address = nrfx_timer_event_address_get(&m_timer, NRF_TIMER_EVENT_COMPARE0);
-	printk("%x %x\n", gpiote_mclk_sync_pin_out, timer_event_address);
-
-	nrfx_gppi_channel_endpoints_setup(channel, timer_event_address, gpiote_mclk_toggle_task_addr );
-	nrfx_gppi_channels_enable(BIT(channel));
-	nrfx_gpiote_out_task_enable(gpiote, PIN);
-	nrfx_timer_enable(&m_timer);
-
-	return 0;
-}
-
 static int cmd_test_codec(const struct shell *shell, size_t argc, char **argv)
 {
 	init_codec();
