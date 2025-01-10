@@ -45,16 +45,32 @@ static int init_i2c(void)
 	static const uint8_t init[][2] = {
 		//word freq to 44.1khz
 		{ 0x22, 0x0a },
-		//enable DAC_L
-		//{ 0x69, 0x88 },
-		//enable LINE amplifier
-		{ 0x6d, 0x80 },
 		//codec in slave mode, 32 BCLK per WCLK
 		{ 0x28, 0x00 },
-		//setup LINE_GAIN to 15db
+		//enable DAC_L
+		{ 0x69, 0x88 },
+		//setup LINE_AMP_GAIN to 15db
 		{ 0x4a, 0x3f },
+		//enable LINE amplifier
+		{ 0x6d, 0x80 },
+		//enable DAC_R
+		{ 0x6a, 0x80 },
+		//setup MIXIN_R_GAIN to 18dB
+		{ 0x35, 0x0f },
+		//enable MIXIN_R
+		{ 0x66, 0x80 },
+		//setup DIG_ROUTING_DAI to DAI
+		{ 0x21, 0x32 },
+		//setup DIG_ROUTING_DAC to mono
+		{ 0x2a, 0xba },
+		//setup DAC_L_GAIN to 12dB
+		{ 0x45, 0x7f },
+		//setup DAC_R_GAIN to 12dB
+		{ 0x46, 0x7f },
 		//enable DAI, 16bit per channel
 		{ 0x29, 0x80 },
+		//setup SYSTEM_MODES_OUTPUT to use DAC_R,DAC_L and LINE
+		{ 0X51, 0xc9 },
 	};
 
 	//software reset
@@ -87,6 +103,7 @@ static int init_i2c(void)
 
                 ret = i2c_reg_write_byte(i2c2_codec, slave_addr,
                                          entry[0], entry[1]);
+		printk("set reg 0x%02x to 0x%02x\n", entry[0], entry[1]);
                 if (ret < 0) {
                         printk("Initialization step %d failed\n", i);
                         return false;
