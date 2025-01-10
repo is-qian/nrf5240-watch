@@ -4,6 +4,11 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/i2s.h>
 #include <nrfx.h>
+#include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/random/random.h>
+
+static const struct device *const i2c2_codec = DEVICE_DT_GET(DT_NODELABEL(i2c2));
 
 //codec
 #define I2S_RX_NODE  DT_NODELABEL(i2s_rxtx)
@@ -23,6 +28,73 @@ const struct device *const i2s_dev_tx = DEVICE_DT_GET(I2S_TX_NODE);
 static int16_t i2s_test_data[BLOCK_SIZE] = {
           0x1122,   0x3344,   0x5566,  0x7788,
 };
+
+static int init_i2s_data(void)
+{
+	for(int i = 0;i < BLOCK_SIZE; i++)
+		i2s_test_data[i] = sys_rand32_get();
+	return 0;
+}
+
+static int init_i2c(void)
+{
+	int ret;
+	uint8_t reg_addr = 0x06;
+	uint8_t out_data;
+	uint16_t slave_addr = 0x001a;
+	static const uint8_t init[][2] = {
+		//word freq to 44.1khz
+		{ 0x22, 0x0a },
+		//enable DAC_L
+		//{ 0x69, 0x88 },
+		//enable LINE amplifier
+		{ 0x6d, 0x80 },
+		//codec in slave mode, 32 BCLK per WCLK
+		{ 0x28, 0x00 },
+		//setup LINE_GAIN to 15db
+		{ 0x4a, 0x3f },
+		//enable DAI, 16bit per channel
+		{ 0x29, 0x80 },
+	};
+
+	//software reset
+	reg_addr = 0x1d;
+	ret = i2c_reg_write_byte(i2c2_codec, slave_addr, reg_addr, 0x80);
+	if(ret) {
+		printk("software reset failed, err:%d\n", ret);
+	}
+	k_msleep(10);
+
+	//read example
+	reg_addr = 0x06;
+	ret = i2c_write_read(i2c2_codec, slave_addr, &reg_addr, 1, &out_data, 1);
+	if(ret == 0) {
+		printk("I2C device found at address 0x%02x\n", slave_addr);
+	}
+	printk("codec i2c read:0x%02x\n", out_data);
+
+	//read chip status 
+	reg_addr = 0xfd;
+	ret = i2c_write_read(i2c2_codec, slave_addr, &reg_addr, 1, &out_data, 1);
+	if(ret) {
+		printk("read codec status failed, err:%d\n", ret);
+	}
+	printk("chip status:0x%02x\n", out_data);
+
+
+        for (int i = 0; i < ARRAY_SIZE(init); ++i) {
+                const uint8_t *entry = init[i];
+
+                ret = i2c_reg_write_byte(i2c2_codec, slave_addr,
+                                         entry[0], entry[1]);
+                if (ret < 0) {
+                        printk("Initialization step %d failed\n", i);
+                        return false;
+                }
+        }
+
+	return 0;
+}
 
 static int init_codec(void)
 {
@@ -72,6 +144,8 @@ static int test_codec(void)
 
 static int cmd_test_codec(const struct shell *shell, size_t argc, char **argv)
 {
+	init_i2c();
+	init_i2s_data();
 	init_codec();
 	test_codec();
 	return 0;
