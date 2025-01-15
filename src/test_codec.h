@@ -14,6 +14,7 @@
 #define BLOCK_COUNT (INITIAL_BLOCKS + 2)
 K_MEM_SLAB_DEFINE_STATIC(mem_slab, BLOCK_SIZE, BLOCK_COUNT, 4);
 
+int init_audio(void);
 int16_t i2s_test_data[BLOCK_SIZE] = {
 #if 1 
 0x0000, 0x0eb2, 0x1b26, 0x237c, 0x2665, 0x237b, 0x1b27, 0x0eb1, 

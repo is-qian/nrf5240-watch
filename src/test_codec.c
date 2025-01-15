@@ -48,7 +48,15 @@ static int init_i2c(void)
 		//enable DAI, 16bit per channel
 		{ 0x29, 0x80 },
 		//setup SYSTEM_MODES_OUTPUT to use DAC_R,DAC_L and LINE
-		{ 0X51, 0xc9 },
+		{ 0X51, 0x00 },
+		//setup Master bias enable
+		{ 0X23, 0x08 },
+		//Sets the input clock range for the PLL 40-80MHz
+		{ 0X27, 0x00 },
+		//setup MIXOUT_R_SELECT to DAC_R selected
+		{ 0X4C, 0x08 },
+		//setup MIXOUT_R_CTRL to MIXOUT_R mixer amp enable and MIXOUT R mixer enable
+		{ 0X6F, 0x98 },
 	};
 
 	//software reset
@@ -137,11 +145,18 @@ static int test_codec(void)
 	return 0;
 }
 
-static int cmd_test_codec(const struct shell *shell, size_t argc, char **argv)
+int init_audio(void)
 {
 	init_i2c();
 	init_codec();
-	test_codec();
+	return 0;
+}
+
+static int cmd_test_codec(const struct shell *shell, size_t argc, char **argv)
+{
+	for(int i = 0; i < 10; i++) {
+		test_codec();
+	}
 	return 0;
 }
 

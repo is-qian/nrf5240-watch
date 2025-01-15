@@ -477,6 +477,16 @@ static int test_sensor_i2c(void)
 	return 0;
 }
 
+static int test_init(void)
+{
+        int ret;
+
+        ret = init_audio();
+        if (ret) {
+                printk("audio init failed!\n");
+        }
+        return ret;
+}
 int main(void)
 {
 	const struct device *dev;
@@ -487,7 +497,10 @@ int main(void)
 		printk("UART device not found!");
                 return 0;
         }
-
+        if (!test_init()) {
+		printk("test init failed!");
+                return 0;
+        }
 	while(1) {
 		uart_line_ctrl_get(dev, UART_LINE_CTRL_DTR, &dtr);
 		k_sleep(K_MSEC(100));
