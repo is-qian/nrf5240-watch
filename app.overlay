@@ -139,6 +139,11 @@
         pinctrl-0 = <&i2c2_default>;
         pinctrl-1 = <&i2c2_sleep>;
         pinctrl-names = "default", "sleep";
+        light: opt3001-light@44 {
+                status = "okay";
+                compatible = "ti,opt3001";
+                reg = <0x44>;
+	};
 };
 
 &i2c1_default {
