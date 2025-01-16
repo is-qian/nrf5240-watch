@@ -485,6 +485,10 @@ static int test_init(void)
         if (ret) {
                 printk("audio init failed!\n");
         }
+        ret = init_bmm350();
+        if (ret) {
+                printk("bmm350 init failed!\n");
+        }
         return ret;
 }
 int main(void)
