@@ -144,6 +144,23 @@
                 compatible = "ti,opt3001";
                 reg = <0x44>;
 	};
+
+        lsm6dso: lsm6dso@6a {
+		compatible = "st,lsm6dso";
+		reg = <0x6a>;
+		irq-gpios = <&gpio0 23 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
+
+        bmp388: bmp388@76 {
+		compatible = "bosch,bmp388";
+		reg = <0x76>;
+                int-gpios = <&gpio0 26 GPIO_ACTIVE_HIGH>;
+		odr = "50";
+		osr-press = <4>;
+		osr-temp = <2>;
+		status = "okay";
+	};
 };
 
 &i2c1_default {
