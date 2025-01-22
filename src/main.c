@@ -87,18 +87,10 @@ static const struct adc_channel_cfg m_1st_channel_cfg = {
 static int16_t m_sample_buffer[BUFFER_SIZE];
 
 //lcd spi
-#define SPIBB_NODE      DT_NODELABEL(spibb0)
-const struct device *const spi_dev = DEVICE_DT_GET(SPIBB_NODE);
+#define SPI4_NODE      DT_NODELABEL(spi4)
+const struct device *const spi_dev = DEVICE_DT_GET(SPI4_NODE);
 struct spi_cs_control cs_ctrl = (struct spi_cs_control){
-        .gpio = GPIO_DT_SPEC_GET(SPIBB_NODE, cs_gpios),
-        .delay = 0u,
-};
-
-//sensor spi
-#define SPIBB_SENSOR      DT_NODELABEL(spibb1)
-const struct device *const sensor_spi_dev = DEVICE_DT_GET(SPIBB_SENSOR);
-struct spi_cs_control sensor_cs0_ctrl = (struct spi_cs_control){
-        .gpio = GPIO_DT_SPEC_GET(SPIBB_SENSOR, cs_gpios),
+        .gpio = GPIO_DT_SPEC_GET(SPI4_NODE, cs_gpios),
         .delay = 0u,
 };
 
@@ -440,17 +432,6 @@ static int init_lcd_spi(void)
 	return 0;
 }
 
-static int init_sensor_spi(void)
-{
-
-        if (!device_is_ready(sensor_spi_dev)) {
-                printk("%s: device not ready.\n", sensor_spi_dev->name);
-                return 0;
-        }
-
-	return 0;
-}
-
 static int init_sensor_i2c(void)
 {
         if (!device_is_ready(i2c2_dev)) {
@@ -491,6 +472,7 @@ static int test_init(void)
         }
         return ret;
 }
+
 int main(void)
 {
 	const struct device *dev;
