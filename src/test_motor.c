@@ -4,7 +4,7 @@
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/gpio.h>
 
-static const struct device *const i2c2_motor = DEVICE_DT_GET(DT_NODELABEL(i2c2));
+static const struct device *const i2c2_motor = DEVICE_DT_GET(DT_NODELABEL(i2c1));
 static const struct gpio_dt_spec lra_en =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(lra_en_pin), gpios, {0});
 
@@ -45,6 +45,10 @@ static int cmd_test_motor(const struct shell *shell, size_t argc, char **argv)
 	if(ret) {
 		printk("motor enter RTP mode failed, err:%d\n", ret);
 	}
+
+	// //set LRA mode
+	// ret = i2c_reg_update_byte(i2c2_motor, slave_addr, 0x1a, 0x80, 0x80);
+	// ret = i2c_reg_update_byte(i2c2_motor, slave_addr, 0x1d, 0x01, 0x01);
 
 	//setup amplitude to max for motor
 	ret = i2c_reg_write_byte(i2c2_motor, slave_addr, 0x02, 0x7f);	

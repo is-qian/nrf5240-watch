@@ -10,7 +10,7 @@
 
 #include "test_codec.h"
 
-static const struct device *const i2c2_codec = DEVICE_DT_GET(DT_NODELABEL(i2c2));
+static const struct device *const i2c2_codec = DEVICE_DT_GET(DT_NODELABEL(i2c1));
 
 const struct device *const i2s_dev_tx = DEVICE_DT_GET(I2S_TX_NODE);
 
@@ -147,8 +147,17 @@ static int test_codec(void)
 
 int init_audio(void)
 {
-	init_i2c();
-	init_codec();
+	int ret;
+	ret = init_i2c();
+	if(ret) {
+		printk("init i2c failed\n");
+		return -1;
+	}
+	ret = init_codec();
+	if(ret) {
+		printk("init codec failed\n");
+		return -1;
+	}
 	return 0;
 }
 

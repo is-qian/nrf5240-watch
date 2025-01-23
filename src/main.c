@@ -43,8 +43,6 @@ static const struct gpio_dt_spec lsm6d_int2 =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(lsm6d_int2_pin), gpios, {0});
 static const struct gpio_dt_spec press_int =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(press_int_pin), gpios, {0});
-static const struct gpio_dt_spec press_cs =
-   GPIO_DT_SPEC_GET_OR(DT_NODELABEL(press_cs_pin), gpios, {0});
 
 //gpio input
 static const struct gpio_dt_spec button_1 =
@@ -87,7 +85,7 @@ static const struct adc_channel_cfg m_1st_channel_cfg = {
 static int16_t m_sample_buffer[BUFFER_SIZE];
 
 //lcd spi
-#define SPI4_NODE      DT_NODELABEL(spi4)
+#define SPI4_NODE      DT_NODELABEL(spi2)
 const struct device *const spi_dev = DEVICE_DT_GET(SPI4_NODE);
 struct spi_cs_control cs_ctrl = (struct spi_cs_control){
         .gpio = GPIO_DT_SPEC_GET(SPI4_NODE, cs_gpios),
@@ -95,7 +93,7 @@ struct spi_cs_control cs_ctrl = (struct spi_cs_control){
 };
 
 //sensor i2c
-#define I2C2_DEV_NAME DT_NODELABEL(i2c2)
+#define I2C2_DEV_NAME DT_NODELABEL(i2c1)
 const struct device *const i2c2_dev = DEVICE_DT_GET(I2C2_DEV_NAME);
 
 static int test_output_pin(const struct gpio_dt_spec *test_pin)
@@ -119,7 +117,6 @@ void test_output(void)
 	test_output_pin(&lsm6d_int1);
 	test_output_pin(&lsm6d_int2);
 	test_output_pin(&press_int);
-	test_output_pin(&press_cs);
 }
 
 void test_input(void)
@@ -316,15 +313,7 @@ void init_adc(void)
 		printk("Error in adc setup: %d\n", err);
 	}
 
-	/* Trigger offset calibration
-	 * As this generates a _DONE and _RESULT event
-	 * the first result will be incorrect.
-	 */
-#if (CONFIG_BUILD_WITH_TFM)
-	NRF_SAADC_NS->TASKS_CALIBRATEOFFSET = 1;
-#else
-	NRF_SAADC_S->TASKS_CALIBRATEOFFSET = 1; 
-#endif
+	NRF_SAADC->TASKS_CALIBRATEOFFSET = 1; 
 }
 
 static int test_adc(void)
@@ -483,9 +472,8 @@ int main(void)
 		printk("UART device not found!");
                 return 0;
         }
-        if (!test_init()) {
+        if (test_init()) {
 		printk("test init failed!");
-                return 0;
         }
 	while(1) {
 		uart_line_ctrl_get(dev, UART_LINE_CTRL_DTR, &dtr);

@@ -18,7 +18,7 @@
 #define lut_gain 0.714607238769531f
 #define power (float)(1000000.0 / 1048576.0)
 
-static const struct device *const i2c2_bmm350 = DEVICE_DT_GET(DT_NODELABEL(i2c2));
+static const struct device *const i2c2_bmm350 = DEVICE_DT_GET(DT_NODELABEL(i2c1));
 
 static const float sensitivity_xy
 	= (power / (bxy_sens * ina_xy_gain_trgt * adc_gain * lut_gain));  // uT/LSB
