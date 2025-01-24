@@ -54,11 +54,6 @@ static const struct gpio_dt_spec button_3 =
 static const struct gpio_dt_spec button_4 =
    GPIO_DT_SPEC_GET_OR(DT_NODELABEL(button_4_pin), gpios, {0});
 
-//pwm backlight ctrl
-const struct pwm_dt_spec pwm_led0 =        PWM_DT_SPEC_GET(DT_ALIAS(pwm_led0));
-#define MIN_PERIOD (PWM_SEC(1U) / 128U)
-#define MAX_PERIOD (PWM_SEC(1U))
-
 //adc
 const struct device *adc_dev;
 
@@ -266,37 +261,6 @@ void test_uart(void)
 
         print_uart("Hello! I'm your echo bot.\r\n");
         print_uart("Tell me something and press enter:\r\n");
-}
-
-void test_pwm(void)
-{
-	uint32_t max_period = 0;
-	uint32_t period;
-
-        if (!pwm_is_ready_dt(&pwm_led0)) {
-                printk("Error: PWM device %s is not ready\n",
-                       pwm_led0.dev->name);
-        }
-	pwm_set_dt(&pwm_led0, MAX_PERIOD, MAX_PERIOD / 2U);
-        printk("Calibrating for channel %d...\n", pwm_led0.channel);
-        max_period = MAX_PERIOD;
-        while (pwm_set_dt(&pwm_led0, max_period, max_period / 2U)) {
-                max_period /= 2U;
-                if (max_period < (4U * MIN_PERIOD)) {
-                        printk("Error: PWM device "
-                               "does not support a period at least %lu\n",
-                               4U * MIN_PERIOD);
-                }
-        }
-
-        printk("Done calibrating; maximum/minimum periods %u/%lu nsec\n",
-               max_period, MIN_PERIOD);
-	period = max_period;
-	period = 15625000;
-
-
-	//setup pwm output
-	printk("pwm:%d %d\n", pwm_set_dt(&pwm_led0, period, period / 2U), period);
 }
 
 void init_adc(void)
