@@ -19,7 +19,8 @@ static volatile bool vbus_connected;
 static const struct device *pmic = DEVICE_DT_GET(DT_NODELABEL(npm1300_ek_pmic));
 static const struct device *leds = DEVICE_DT_GET(DT_NODELABEL(npm1300_ek_leds));
 static const struct device *regulators = DEVICE_DT_GET(DT_NODELABEL(npm1300_ek_regulators));
-static const struct device *ldsw = DEVICE_DT_GET(DT_NODELABEL(npm1300_ek_ldo1));
+static const struct device *ldo1 = DEVICE_DT_GET(DT_NODELABEL(npm1300_ek_ldo1));
+static const struct device *ldo2 = DEVICE_DT_GET(DT_NODELABEL(npm1300_ek_ldo2));
 static const struct device *charger = DEVICE_DT_GET(DT_NODELABEL(npm1300_ek_charger));
 
 static void event_callback(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
@@ -35,14 +36,14 @@ static void event_callback(const struct device *dev, struct gpio_callback *cb, u
 
                 if (press_t < PRESS_SHORT_MS) {
                         printk("Short press\n");
-                        if (!regulator_is_enabled(ldsw)) {
-                                regulator_enable(ldsw);
+                        if (!regulator_is_enabled(ldo1)) {
+                                regulator_enable(ldo1);
                         }
                         flash_time_ms = FAST_FLASH_MS;
                 } else if (press_t < PRESS_MEDIUM_MS) {
                         printk("Medium press\n");
-                        if (regulator_is_enabled(ldsw)) {
-                                regulator_disable(ldsw);
+                        if (regulator_is_enabled(ldo1)) {
+                                regulator_disable(ldo1);
                         }
                         flash_time_ms = SLOW_FLASH_MS;
                 } else {
@@ -78,7 +79,7 @@ bool configure_events(void)
                 return false;
         }
 
-        if (!device_is_ready(ldsw)) {
+        if (!device_is_ready(ldo1)) {
                 printk("Load switch device not ready.\n");
                 return false;
         }
@@ -108,6 +109,35 @@ bool configure_events(void)
         vbus_connected = (val.val1 != 0) || (val.val2 != 0);
 
         return true;
+}
+
+int init_pmic(void)
+{
+        if (!device_is_ready(pmic)) {
+                printk("Pmic device not ready.\n");
+                return false;
+        }
+
+        if (!device_is_ready(regulators)) {
+                printk("Regulator device not ready.\n");
+                return false;
+        }
+
+        if (device_is_ready(ldo1)) {
+                printk("Load switch device not ready.\n");
+                if (!regulator_is_enabled(ldo1)) {
+                        regulator_enable(ldo1);
+                }
+        }
+
+        if (device_is_ready(ldo2)) {
+                printk("LDO2 device not ready.\n");
+                if (!regulator_is_enabled(ldo2)) {
+                        regulator_enable(ldo2);
+                }
+        }
+
+	return 0;
 }
 
 static int cmd_test_pmic(const struct shell *shell, size_t argc,

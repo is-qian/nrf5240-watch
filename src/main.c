@@ -415,6 +415,10 @@ static int test_init(void)
 {
         int ret;
 
+        ret = init_pmic();
+        if (ret) {
+                printk("pmic init failed!\n");
+        }
         ret = init_audio();
         if (ret) {
                 printk("audio init failed!\n");
