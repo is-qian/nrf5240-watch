@@ -5,71 +5,164 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/display.h>
 #include <nrfx.h>
+#ifdef CONFIG_ARCH_POSIX
+#include "posix_board_if.h"
+#endif
 
-const struct device *const lcd =  DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
-static const uint32_t display_width = DT_PROP(DT_CHOSEN(zephyr_display), width);
-static const uint32_t display_height = DT_PROP(DT_CHOSEN(zephyr_display), height);
-static struct display_capabilities cfg;
-static uint8_t bpp;
-static uint8_t disp_buffer[DT_PROP(DT_CHOSEN(zephyr_display), width) *
-			   DT_PROP(DT_CHOSEN(zephyr_display), height) * 4];
+typedef void (*fill_buffer)(enum corner corner, uint8_t grey, uint8_t *buf,
+			    size_t buf_size);
 
-static inline uint8_t bytes_per_pixel(enum display_pixel_format pixel_format)
+
+#ifdef CONFIG_ARCH_POSIX
+static void posix_exit_main(int exit_code)
 {
-	switch (pixel_format) {
-	case PIXEL_FORMAT_ARGB_8888:
-		return 4;
-	case PIXEL_FORMAT_RGB_888:
-		return 3;
-	case PIXEL_FORMAT_RGB_565:
-	case PIXEL_FORMAT_BGR_565:
-		return 2;
-	case PIXEL_FORMAT_MONO01:
-	case PIXEL_FORMAT_MONO10:
-	default:
-		return 1;
+#if CONFIG_TEST
+	if (exit_code == 0) {
+		printk("PROJECT EXECUTION SUCCESSFUL");
+	} else {
+		printk("PROJECT EXECUTION FAILED");
+	}
+#endif
+	posix_exit(exit_code);
+}
+#endif
+
+static int test_lcd(int date)
+{
+	size_t x;
+	size_t y;
+	size_t rect_w;
+	size_t rect_h;
+	size_t h_step;
+	size_t scale;
+	uint8_t bg_color;
+	uint8_t *buf;
+	const struct device *display_dev;
+	struct display_capabilities capabilities;
+	struct display_buffer_descriptor buf_desc;
+	size_t buf_size = 0;
+
+	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+	if (!device_is_ready(display_dev)) {
+		printk("Device %s not found. Aborting sample.",
+			display_dev->name);
+#ifdef CONFIG_ARCH_POSIX
+		posix_exit_main(1);
+#else
+		return 0;
+#endif
 	}
 
-	return 0;
-}
+	printk("Display sample for %s, display date: 0x%x\n", display_dev->name, date);
+	display_get_capabilities(display_dev, &capabilities);
 
-static int test_lcd(void)
-{
-    int ret;
-    display_get_capabilities(lcd, &cfg);
-    bpp = bytes_per_pixel(cfg.current_pixel_format);
-    printk("bpp: %d\n", bpp);
+	if (capabilities.screen_info & SCREEN_INFO_MONO_VTILED) {
+		rect_w = 16;
+		rect_h = 8;
+	} else {
+		rect_w = 2;
+		rect_h = 1;
+	}
 
-	struct display_buffer_descriptor desc = {
-		.height = display_height,
-		.pitch = display_width,
-		.width = display_width,
-		.buf_size = display_height * display_width * bpp,
-	};
+	if ((capabilities.x_resolution < 3 * rect_w) ||
+	    (capabilities.y_resolution < 3 * rect_h) ||
+	    (capabilities.x_resolution < 8 * rect_h)) {
+		rect_w = capabilities.x_resolution * 40 / 100;
+		rect_h = capabilities.y_resolution * 40 / 100;
+		h_step = capabilities.y_resolution * 20 / 100;
+		scale = 1;
+	} else {
+		h_step = rect_h;
+		scale = (capabilities.x_resolution / 8) / rect_h;
+	}
 
-	memset(disp_buffer, 0, sizeof(disp_buffer));
-    display_blanking_off(lcd);
-    for (int i = 0; i < display_height; i++) {
-        for (int j = 0; j < display_width; j++) {
-            uint8_t *pixel = &disp_buffer[(i * display_width + j) * bpp];
-            pixel[0] = 0xf0;
-            if (bpp > 1) {
-                pixel[1] = 0xff;
-                pixel[2] = 0xff;
-            }
-            if (bpp == 4) {
-                pixel[3] = 0xff;
-            }
-        }
-    }
-	display_write(lcd, 0, 0, &desc, disp_buffer);
-    display_blanking_on(lcd);
-    return ret;
+	rect_w *= scale;
+	rect_h *= scale;
+
+
+	buf_size = rect_w * rect_h;
+
+	if (buf_size < (capabilities.x_resolution * h_step)) {
+		buf_size = capabilities.x_resolution * h_step;
+	}
+	switch (capabilities.current_pixel_format) {
+	case PIXEL_FORMAT_ARGB_8888:
+		bg_color = 0xFFu;
+		buf_size *= 4;
+		break;
+	case PIXEL_FORMAT_RGB_888:
+		bg_color = 0xFFu;
+		buf_size *= 3;
+		break;
+	case PIXEL_FORMAT_RGB_565:
+		bg_color = 0xFFu;
+		buf_size *= 2;
+		break;
+	case PIXEL_FORMAT_BGR_565:
+		bg_color = 0xFFu;
+		buf_size *= 2;
+		break;
+	case PIXEL_FORMAT_MONO01:
+		bg_color = 0xFFu;
+		buf_size = DIV_ROUND_UP(DIV_ROUND_UP(
+			buf_size, NUM_BITS(uint8_t)), sizeof(uint8_t));
+		break;
+	case PIXEL_FORMAT_MONO10:
+		bg_color = 0x00u;
+		buf_size = DIV_ROUND_UP(DIV_ROUND_UP(
+			buf_size, NUM_BITS(uint8_t)), sizeof(uint8_t));
+		break;
+	default:
+		printk("Unsupported pixel format. Aborting sample.");
+#ifdef CONFIG_ARCH_POSIX
+		posix_exit_main(1);
+#else
+		return 0;
+#endif
+	}
+
+	buf = k_malloc(buf_size);
+	if (buf == NULL) {
+		printk("Could not allocate memory. Aborting sample.");
+#ifdef CONFIG_ARCH_POSIX
+		posix_exit_main(1);
+#else
+		return 0;
+#endif
+	}
+
+	(void)memset(buf, date, buf_size);
+
+	buf_desc.buf_size = buf_size;
+	buf_desc.pitch = capabilities.x_resolution;
+	buf_desc.width = capabilities.x_resolution;
+	buf_desc.height = h_step;
+	display_blanking_on(display_dev);
+	for (int idx = 0; idx < capabilities.y_resolution; idx += h_step) {
+		/*
+		 * Tweaking the height value not to draw outside of the display.
+		 * It is required when using a monochrome display whose vertical
+		 * resolution can not be divided by 8.
+		 */
+		if ((capabilities.y_resolution - idx) < h_step) {
+			buf_desc.height = (capabilities.y_resolution - idx);
+		}
+		display_write(display_dev, 0, idx, &buf_desc, buf);
+		k_msleep(10);
+	}
+	display_blanking_off(display_dev);
+	k_free(buf);
 }
 
 static int cmd_test_lcd(const struct shell *shell, size_t argc, char **argv)
 {
-	test_lcd();
+	int date;
+	if (argc > 1) {
+		date = strtoul(argv[1], NULL, 16);
+	} else {
+		date = 0x0;
+	}
+	test_lcd(date);
 	return 0;
 }
 

@@ -214,8 +214,8 @@ i2s_rxtx: &i2s0 {
                 extcomin-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
                 disp-en-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
                 extcomin-frequency = <120>;
-                height = <144>;
-                width = <168>;
+                height = <168>;
+                width = <144>;
                 spi-max-frequency = <1000000>;
                 status = "okay";
 	};
