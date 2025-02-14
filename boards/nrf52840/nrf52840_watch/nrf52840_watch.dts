@@ -72,6 +72,13 @@
 		gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
 		status = "okay";
 	};
+
+	lcd_bk: lcd-bk {
+        compatible = "pwm-backlight";
+        pwms = <&pwm0 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+		freq =  <256>;
+		status = "okay";
+    };
 	
 	chosen {
 		zephyr,sram = &sram0;
@@ -125,12 +132,10 @@
 };
 
 &pwm0 {
-	status = "disabled";
-};
-
-&sw_pwm {
 	status = "okay";
-	channel-gpios = <&gpio1 7 PWM_POLARITY_INVERTED>;
+	pinctrl-0 = <&pwm0_default>;
+	pinctrl-1 = <&pwm0_sleep>;
+	pinctrl-names = "default", "sleep";
 };
 
 &uart0 {
@@ -283,7 +288,7 @@ i2s_rxtx: &i2s0 {
 		compatible = "sharp,ls0xx";
 		reg = <0>;
 		extcomin-gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
-		disp-en-gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+		disp-en-gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
 		extcomin-frequency = <120>;
 		height = <168>;
 		width = <144>;

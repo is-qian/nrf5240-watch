@@ -4,6 +4,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/display.h>
+#include <zephyr/drivers/pwm.h>
 #include <nrfx.h>
 #ifdef CONFIG_ARCH_POSIX
 #include "posix_board_if.h"
@@ -27,10 +28,8 @@ static void posix_exit_main(int exit_code)
 }
 #endif
 
-static int test_lcd(int date)
+static int test_lcd(int date, uint32_t duty)
 {
-	size_t x;
-	size_t y;
 	size_t rect_w;
 	size_t rect_h;
 	size_t h_step;
@@ -38,11 +37,14 @@ static int test_lcd(int date)
 	uint8_t bg_color;
 	uint8_t *buf;
 	const struct device *display_dev;
+	uint32_t freq, period, pulse_width;
 	struct display_capabilities capabilities;
 	struct display_buffer_descriptor buf_desc;
 	size_t buf_size = 0;
 
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+	const struct pwm_dt_spec backlight = PWM_DT_SPEC_GET(DT_NODELABEL(lcd_bk));
+	freq = DT_PROP(DT_NODELABEL(lcd_bk), freq);
 	if (!device_is_ready(display_dev)) {
 		printk("Device %s not found. Aborting sample.",
 			display_dev->name);
@@ -51,6 +53,19 @@ static int test_lcd(int date)
 #else
 		return 0;
 #endif
+	}
+
+	if (!pwm_is_ready_dt(&backlight)) {
+		printk("Error: PWM device %s is not ready\n", backlight.dev->name);
+		return 0;
+	}
+
+    period = NSEC_PER_SEC / freq;
+    pulse_width = (period * duty) / 100;
+
+	if (pwm_set_dt(&backlight, period, pulse_width)) {
+		printk("Error : failed to set pulse width\n");
+		return 0;
 	}
 
 	printk("Display sample for %s, display date: 0x%x\n", display_dev->name, date);
@@ -157,12 +172,19 @@ static int test_lcd(int date)
 static int cmd_test_lcd(const struct shell *shell, size_t argc, char **argv)
 {
 	int date;
-	if (argc > 1) {
+	uint32_t duty;
+	if (argc > 2) {
 		date = strtoul(argv[1], NULL, 16);
+		duty = strtoul(argv[2], NULL, 10);
+	}
+	else if (argc > 1) {
+		date = strtoul(argv[1], NULL, 16);
+		duty = 0x50;
 	} else {
 		date = 0x0;
+		duty = 0x50;
 	}
-	test_lcd(date);
+	test_lcd(date, duty);
 	return 0;
 }
 

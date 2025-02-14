@@ -1,0 +1,16 @@
+description: PWM-driven backlight
+
+compatible: "pwm-backlight"
+
+include: base.yaml
+
+properties:
+  pwms:
+    required: true
+    type: phandle-array
+    description: PWM specifier driving the backlight.
+
+  freq:
+    required: true
+    type: int
+    description: Frequency of the PWM signal in Hz.
