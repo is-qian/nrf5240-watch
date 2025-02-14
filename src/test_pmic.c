@@ -124,14 +124,12 @@ int init_pmic(void)
         }
 
         if (device_is_ready(ldo1)) {
-                printk("Load switch device not ready.\n");
                 if (!regulator_is_enabled(ldo1)) {
                         regulator_enable(ldo1);
                 }
         }
 
         if (device_is_ready(ldo2)) {
-                printk("LDO2 device not ready.\n");
                 if (!regulator_is_enabled(ldo2)) {
                         regulator_enable(ldo2);
                 }
