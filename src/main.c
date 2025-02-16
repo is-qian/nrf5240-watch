@@ -101,7 +101,7 @@ int main(void)
 	const struct device *dev;
 	uint32_t dtr = 0;
 
-        clock_init();
+    // clock_init();
 	dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_shell_uart));
         if (!device_is_ready(dev)) {
 		printk("UART device not found!");
