@@ -134,24 +134,26 @@
 			
 			/* limits are set to min/max allowed values */
 			npm1300_ek_buck1: BUCK1 {
-				regulator-min-microvolt = <1000000>;
+				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <1800000>;
 			};
 			
 			npm1300_ek_buck2: BUCK2 {
-				regulator-min-microvolt = <1000000>;
+				regulator-min-microvolt = <3000000>;
 				regulator-max-microvolt = <3000000>;
 			};
 			
 			npm1300_ek_ldo1: LDO1 {
-				regulator-min-microvolt = <1000000>;
+				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <1800000>;
+				regulator-init-microvolt = <1800000>;
 				regulator-initial-mode = <NPM1300_LDSW_MODE_LDO>;
 			};
 			
 			npm1300_ek_ldo2: LDO2 {
-				regulator-min-microvolt = <1000000>;
+				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <1800000>;
+				regulator-init-microvolt = <1800000>;
 				regulator-initial-mode = <NPM1300_LDSW_MODE_LDO>;
 			};
 		};
