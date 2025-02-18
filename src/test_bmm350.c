@@ -103,8 +103,8 @@ static int bmm3_update_odr(float time, float* actual_time) {
 	if (err) {
 		printk("I2C error");
 	}
-
-	*actual_time = time;
+	if (actual_time != NULL)
+		*actual_time = time;
 	return err;
 }
 
@@ -140,18 +140,17 @@ static void bmm3_mag_process(uint8_t* raw_m, float m[3]) {
 						 | (((int32_t)raw_m[(i * 3) + 1]) << 8)
 						 | ((int32_t)raw_m[i * 3]));
 		m[i] *= i < 2 ? sensitivity_xy : sensitivity_z;
-		m[i] /= 100;  // uT to gauss
+		// m[i] /= 100;  // uT to gauss
 	}
 }
 
 static void bmm3_mag_read(float m[3]) {
 	int err = 0;
-	// uint8_t status = 1;
+	uint8_t status = 1;
     uint8_t reg_addr = BMM350_PMU_CMD_STATUS_0;
-	// while ((status & 0x01) == 0x01) {  // wait for forced mode to complete
-	// 	err |= i2c_write_read(i2c2_bmm350, BMM350_ADDR, &reg_addr, 1, &status , 1);
-	// 	printk("status: %x\n", status);
-	// }
+	while ((status & 0x01) == 0x01) {  // wait for forced mode to complete
+		err |= i2c_write_read(i2c2_bmm350, BMM350_ADDR, &reg_addr, 1, &status , 1);
+	}
 	uint8_t rawData[11];
     reg_addr = BMM350_MAG_X_XLSB;
 	err |= i2c_write_read(i2c2_bmm350, BMM350_ADDR, &reg_addr, 1, &rawData[0], 11);
@@ -164,11 +163,11 @@ static void bmm3_mag_read(float m[3]) {
 static float bmm3_temp_read() {
 	int err = 0;
 	uint8_t rawTemp[5];
-	// uint8_t status = 1;
+	uint8_t status = 1;
 	uint8_t reg_addr = BMM350_PMU_CMD_STATUS_0;
-	// while ((status & 0x01) == 0x01) {  // wait for forced mode to complete
-	// 	err |= i2c_write_read(i2c2_bmm350, BMM350_ADDR, &reg_addr, 1, &status , 1);
-	// }
+	while ((status & 0x01) == 0x01) {  // wait for forced mode to complete
+		err |= i2c_write_read(i2c2_bmm350, BMM350_ADDR, &reg_addr, 1, &status , 1);
+	}
 	reg_addr = BMM350_TEMP_XLSB;
 	err |= i2c_write_read(i2c2_bmm350, BMM350_ADDR, &reg_addr, 1, &rawTemp[0], 5);
 	if (err) {
@@ -190,7 +189,7 @@ int init_bmm350(void)
 {
 	int ret;
     float time;
-    ret = bmm3_init(0.1, &time);
+    ret = bmm3_init(0, &time);
 	return ret;
 }
 
@@ -198,6 +197,8 @@ static int test_bmm350(void)
 {
 	float mag[3];
 	float temp;
+	bmm3_mag_oneshot();
+	k_msleep(100);
 	bmm3_mag_read(mag);
 	temp = bmm3_temp_read();
 	printk("mag: %d, %d, %d, temp: %d.%d\n", (int)mag[0], (int)mag[1], (int)mag[2], (int)temp, (int)(temp * 100) % 100);

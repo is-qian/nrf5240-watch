@@ -93,6 +93,10 @@ static int test_init(void)
         if (ret) {
                 printk("bmm350 init failed!\n");
         }
+        ret = init_bmp390();
+        if (ret) {
+                printk("bmp390 init failed!\n");
+        }
         return ret;
 }
 
@@ -101,7 +105,7 @@ int main(void)
 	const struct device *dev;
 	uint32_t dtr = 0;
 
-    // clock_init();
+        // clock_init();
 	dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_shell_uart));
         if (!device_is_ready(dev)) {
 		printk("UART device not found!");

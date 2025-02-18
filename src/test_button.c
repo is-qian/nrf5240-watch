@@ -37,6 +37,7 @@ static int cmd_test_button(const struct shell *shell, size_t argc, char **argv)
 	if(button4 < 0)
 		printk("failed to read pin: %d\n", button_4.pin);
 	printk("button1:%d button2:%d button3:%d button4:%d\n", button1, button2, button3, button4);
+	return 0;
 }
 
 SHELL_CMD_REGISTER(test_button, NULL, "button test commands", cmd_test_button);

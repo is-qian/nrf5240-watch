@@ -39,11 +39,17 @@ static void event_callback(const struct device *dev, struct gpio_callback *cb, u
                         if (!regulator_is_enabled(ldo1)) {
                                 regulator_enable(ldo1);
                         }
+                        if (!regulator_is_enabled(ldo2)) {
+                                regulator_enable(ldo2);
+                        }
                         flash_time_ms = FAST_FLASH_MS;
                 } else if (press_t < PRESS_MEDIUM_MS) {
                         printk("Medium press\n");
                         if (regulator_is_enabled(ldo1)) {
                                 regulator_disable(ldo1);
+                        }
+                        if (regulator_is_enabled(ldo2)) {
+                                regulator_disable(ldo2);
                         }
                         flash_time_ms = SLOW_FLASH_MS;
                 } else {
@@ -123,18 +129,21 @@ int init_pmic(void)
                 return false;
         }
 
-        if (device_is_ready(ldo1)) {
-                if (!regulator_is_enabled(ldo1)) {
-                        regulator_enable(ldo1);
-                }
-        }
+        // if (device_is_ready(ldo1)) {
+        //         if (!regulator_is_enabled(ldo1)) {
+        //                 regulator_enable(ldo1);
+        //         }
+        // }
 
-        if (device_is_ready(ldo2)) {
-                if (!regulator_is_enabled(ldo2)) {
-                        regulator_enable(ldo2);
-                }
+        // if (device_is_ready(ldo2)) {
+        //         if (!regulator_is_enabled(ldo2)) {
+        //                 regulator_enable(ldo2);
+        //         }
+        // }
+        if (!configure_events()) {
+                printk("Error: could not configure events\n");
+                return 0;
         }
-
 	return 0;
 }
 
