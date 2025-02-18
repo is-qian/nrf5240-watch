@@ -5,118 +5,58 @@
 #include <zephyr/drivers/flash.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/uart.h>
+#include <zephyr/drivers/pwm.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/shell/shell.h>
-#include <zephyr/drivers/clock_control.h>
-#include <zephyr/drivers/clock_control/nrf_clock_control.h>
-#if defined(CONFIG_CLOCK_CONTROL_NRF2)
-#include <hal/nrf_lrcconf.h>
-#endif
 
-#if defined(CONFIG_CLOCK_CONTROL_NRF)
-static void clock_init(void)
-{
-	int err;
-	int res;
-	struct onoff_manager *clk_mgr;
-	struct onoff_client clk_cli;
-
-	clk_mgr = z_nrf_clock_control_get_onoff(CLOCK_CONTROL_NRF_SUBSYS_HF);
-	if (!clk_mgr) {
-		printk("Unable to get the Clock manager\n");
-		return;
-	}
-
-	sys_notify_init_spinwait(&clk_cli.notify);
-
-	err = onoff_request(clk_mgr, &clk_cli);
-	if (err < 0) {
-		printk("Clock request failed: %d\n", err);
-		return;
-	}
-
-	do {
-		err = sys_notify_fetch_result(&clk_cli.notify, &res);
-		if (!err && res) {
-			printk("Clock could not be started: %d\n", res);
-			return;
-		}
-	} while (err);
-
-	printk("Clock has started\n");
-}
-
-#elif defined(CONFIG_CLOCK_CONTROL_NRF2)
-
-static void clock_init(void)
-{
-	int err;
-	int res;
-	const struct device *radio_clk_dev =
-		DEVICE_DT_GET_OR_NULL(DT_CLOCKS_CTLR(DT_NODELABEL(radio)));
-	struct onoff_client radio_cli;
-
-	/** Keep radio domain powered all the time to reduce latency. */
-	nrf_lrcconf_poweron_force_set(NRF_LRCCONF010, NRF_LRCCONF_POWER_DOMAIN_1, true);
-
-	sys_notify_init_spinwait(&radio_cli.notify);
-
-	err = nrf_clock_control_request(radio_clk_dev, NULL, &radio_cli);
-
-	do {
-		err = sys_notify_fetch_result(&radio_cli.notify, &res);
-		if (!err && res) {
-			printk("Clock could not be started: %d\n", res);
-			return;
-		}
-	} while (err == -EAGAIN);
-
-	printk("Clock has started\n");
-}
-
-#else
-BUILD_ASSERT(false, "No Clock Control driver");
-#endif /* defined(CONFIG_CLOCK_CONTROL_NRF) */
-
-static int test_init(void)
-{
-        int ret;
-
-        ret = init_pmic();
-        if (ret) {
-                printk("pmic init failed!\n");
-        }
-        ret = init_audio();
-        if (ret) {
-                printk("audio init failed!\n");
-        }
-        ret = init_bmm350();
-        if (ret) {
-                printk("bmm350 init failed!\n");
-        }
-        ret = init_bmp390();
-        if (ret) {
-                printk("bmp390 init failed!\n");
-        }
-        return ret;
-}
-
+const struct pwm_dt_spec backlight = PWM_DT_SPEC_GET(DT_NODELABEL(lcd_bk));
+uint32_t freq = DT_PROP(DT_NODELABEL(lcd_bk), freq);
+static const struct gpio_dt_spec button_2 =
+   GPIO_DT_SPEC_GET_OR(DT_NODELABEL(button_2_pin), gpios, {0});
+static const struct gpio_dt_spec button_3 =
+   GPIO_DT_SPEC_GET_OR(DT_NODELABEL(button_3_pin), gpios, {0});
+static const struct gpio_dt_spec button_4 =
+   GPIO_DT_SPEC_GET_OR(DT_NODELABEL(button_4_pin), gpios, {0});
+ 
 int main(void)
 {
-	const struct device *dev;
-	uint32_t dtr = 0;
+	int button1, button2, button3, button4;
+	uint32_t period, pulse_width, duty;
+	if(button_2.port)
+		gpio_pin_configure_dt(&button_2, GPIO_INPUT | GPIO_PULL_UP);
+	if(button_3.port)
+		gpio_pin_configure_dt(&button_3, GPIO_INPUT | GPIO_PULL_UP);
+	if(button_4.port)
+		gpio_pin_configure_dt(&button_4, GPIO_INPUT | GPIO_PULL_UP);
 
-        // clock_init();
-	dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_shell_uart));
-        if (!device_is_ready(dev)) {
-		printk("UART device not found!");
-                return 0;
-        }
-        if (test_init()) {
-		printk("test init failed!");
-        }
-	while(1) {
-		uart_line_ctrl_get(dev, UART_LINE_CTRL_DTR, &dtr);
-		k_sleep(K_MSEC(100));
+	while (1)
+	{
+		button2 = gpio_pin_get(button_2.port, button_2.pin);
+		button3 = gpio_pin_get(button_3.port, button_3.pin);
+		button4 = gpio_pin_get(button_4.port, button_4.pin);
+		if(button2 == 0){
+			k_msleep(10);
+			if(button2 == 0)
+				duty += 10;
+		}
+		if(button3 == 0){
+			k_msleep(10);
+			if(button3 == 0)
+				duty = 10;
+		}
+		if(button4 == 0){
+			k_msleep(10);
+			if(button4 == 0)
+				duty -= 10;
+		}
+		if(duty > 100)
+			duty = 100;
+		if(duty < 0)
+			duty = 0;
+	
+		period = NSEC_PER_SEC / freq;
+		pulse_width = (period * duty) / 100;
+		pwm_set_dt(&backlight, period, pulse_width);/* code */
 	}
 	return 0;
 }
