@@ -1,11 +1,5 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
-
-#include <zephyr/drivers/gpio.h>
-#include <zephyr/drivers/flash.h>
-#include <zephyr/device.h>
-#include <zephyr/drivers/uart.h>
-#include <zephyr/shell/shell.h>
 #include <zephyr/drivers/clock_control.h>
 #include <zephyr/drivers/clock_control/nrf_clock_control.h>
 #if defined(CONFIG_CLOCK_CONTROL_NRF2)
@@ -21,7 +15,8 @@ static void clock_init(void)
 	struct onoff_client clk_cli;
 
 	clk_mgr = z_nrf_clock_control_get_onoff(CLOCK_CONTROL_NRF_SUBSYS_HF);
-	if (!clk_mgr) {
+	if (!clk_mgr)
+	{
 		printk("Unable to get the Clock manager\n");
 		return;
 	}
@@ -29,14 +24,17 @@ static void clock_init(void)
 	sys_notify_init_spinwait(&clk_cli.notify);
 
 	err = onoff_request(clk_mgr, &clk_cli);
-	if (err < 0) {
+	if (err < 0)
+	{
 		printk("Clock request failed: %d\n", err);
 		return;
 	}
 
-	do {
+	do
+	{
 		err = sys_notify_fetch_result(&clk_cli.notify, &res);
-		if (!err && res) {
+		if (!err && res)
+		{
 			printk("Clock could not be started: %d\n", res);
 			return;
 		}
@@ -62,9 +60,11 @@ static void clock_init(void)
 
 	err = nrf_clock_control_request(radio_clk_dev, NULL, &radio_cli);
 
-	do {
+	do
+	{
 		err = sys_notify_fetch_result(&radio_cli.notify, &res);
-		if (!err && res) {
+		if (!err && res)
+		{
 			printk("Clock could not be started: %d\n", res);
 			return;
 		}
@@ -79,43 +79,42 @@ BUILD_ASSERT(false, "No Clock Control driver");
 
 static int test_init(void)
 {
-        int ret;
+	int ret;
 
-        ret = init_pmic();
-        if (ret) {
-                printk("pmic init failed!\n");
-        }
-        ret = init_audio();
-        if (ret) {
-                printk("audio init failed!\n");
-        }
-        ret = init_bmm350();
-        if (ret) {
-                printk("bmm350 init failed!\n");
-        }
-        ret = init_bmp390();
-        if (ret) {
-                printk("bmp390 init failed!\n");
-        }
-        return ret;
+	ret = init_pmic();
+	if (ret)
+	{
+		printk("pmic init failed!\n");
+	}
+	ret = init_audio();
+	if (ret)
+	{
+		printk("audio init failed!\n");
+	}
+	ret = init_bmm350();
+	if (ret)
+	{
+		printk("bmm350 init failed!\n");
+	}
+	ret = init_bmp390();
+	if (ret)
+	{
+		printk("bmp390 init failed!\n");
+	}
+
+	bluetooth_shell_init();
+	return ret;
 }
 
 int main(void)
 {
-	const struct device *dev;
-	uint32_t dtr = 0;
-
-        // clock_init();
-	dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_shell_uart));
-        if (!device_is_ready(dev)) {
-		printk("UART device not found!");
-                return 0;
-        }
-        if (test_init()) {
+	// clock_init();
+	if (test_init())
+	{
 		printk("test init failed!");
-        }
-	while(1) {
-		uart_line_ctrl_get(dev, UART_LINE_CTRL_DTR, &dtr);
+	}
+	while (1)
+	{
 		k_sleep(K_MSEC(100));
 	}
 	return 0;

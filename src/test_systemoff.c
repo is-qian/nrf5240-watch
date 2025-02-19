@@ -16,13 +16,14 @@ static const struct gpio_dt_spec button1 = GPIO_DT_SPEC_GET_OR(DT_NODELABEL(butt
 static int cmd_test_systemoff(const struct shell *shell, size_t argc, char **argv)
 {
     int rc;
+#if defined(CONFIG_UART_CONSOLE)
 	const struct device *const cons = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
 
 	if (!device_is_ready(cons)) {
 		printk("%s: device not ready.\n", cons->name);
 		return 0;
 	}
-
+#endif
 	printk("\n%s system off demo\n", CONFIG_BOARD);
 
 	/* configure button1 as input, interrupt as level active to allow wake-up */
@@ -39,13 +40,13 @@ static int cmd_test_systemoff(const struct shell *shell, size_t argc, char **arg
 	}
 
 	printk("Entering system off; press button1 to restart\n");
-
+#if defined(CONFIG_UART_CONSOLE)
 	rc = pm_device_action_run(cons, PM_DEVICE_ACTION_SUSPEND);
 	if (rc < 0) {
 		printk("Could not suspend console (%d)\n", rc);
 		return 0;
 	}
-
+#endif
 	sys_poweroff();
 
 	return 0;
