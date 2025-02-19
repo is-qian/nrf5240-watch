@@ -28,7 +28,7 @@ static void posix_exit_main(int exit_code)
 }
 #endif
 
-static int test_lcd(int date, uint32_t duty)
+int test_lcd(int date, uint32_t duty)
 {
 	size_t rect_w;
 	size_t rect_h;
@@ -63,10 +63,10 @@ static int test_lcd(int date, uint32_t duty)
     period = NSEC_PER_SEC / freq;
     pulse_width = (period * duty) / 100;
 
-	if (pwm_set_dt(&backlight, period, pulse_width)) {
-		printk("Error : failed to set pulse width\n");
-		return 0;
-	}
+	// if (pwm_set_dt(&backlight, period, pulse_width)) {
+	// 	printk("Error : failed to set pulse width\n");
+	// 	return 0;
+	// }
 
 	printk("Display sample for %s, display date: 0x%x\n", display_dev->name, date);
 	display_get_capabilities(display_dev, &capabilities);
@@ -169,7 +169,7 @@ static int test_lcd(int date, uint32_t duty)
 	k_free(buf);
 }
 
-static int cmd_test_lcd(const struct shell *shell, size_t argc, char **argv)
+int cmd_test_lcd(const struct shell *shell, size_t argc, char **argv)
 {
 	int date;
 	uint32_t duty;
