@@ -46,9 +46,8 @@ static int cmd_test_motor(const struct shell *shell, size_t argc, char **argv)
 		printk("motor enter RTP mode failed, err:%d\n", ret);
 	}
 
-	// //set LRA mode
-	// ret = i2c_reg_update_byte(i2c2_motor, slave_addr, 0x1a, 0x80, 0x80);
-	// ret = i2c_reg_update_byte(i2c2_motor, slave_addr, 0x1d, 0x01, 0x01);
+	//set LRA mode
+	ret = i2c_reg_update_byte(i2c2_motor, slave_addr, 0x1a, 0x80, 0x80);
 
 	//setup amplitude to max for motor
 	ret = i2c_reg_write_byte(i2c2_motor, slave_addr, 0x02, 0x7f);	

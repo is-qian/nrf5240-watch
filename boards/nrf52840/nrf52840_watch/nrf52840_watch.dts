@@ -40,6 +40,11 @@
 		status = "okay";
     };
 
+	lra_en_pin: lra-en-pin {
+                compatible = "nordic,gpio-pins";
+                gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+                status = "okay";
+	};
 	chosen {
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
